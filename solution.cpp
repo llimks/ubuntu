@@ -6,22 +6,19 @@
 
 using namespace std;
 
-// Функція для обчислення факторіала
 int factorial(int n) {
     if (n == 0 || n == 1)
         return 1;
     return n * factorial(n - 1);
 }
 
-// Функція для обчислення пріоритету операторів
 int precedence(char op) {
     if (op == '+' || op == '-') return 1;
     if (op == '*' || op == '/') return 2;
-    if (op == '!') return 3; // факторіал має найвищий пріоритет
+    if (op == '!') return 3;
     return 0;
 }
 
-// Функція для виконання операцій
 double applyOp(double a, double b, char op) {
     switch (op) {
         case '+': return a + b;
@@ -32,27 +29,26 @@ double applyOp(double a, double b, char op) {
     }
 }
 
-// Функція для обчислення виразу з урахуванням дужок
 double evaluate(string expr) {
-    stack<double> values;  // для чисел
-    stack<char> ops;       // для операторів
+    stack<double> values; 
+    stack<char> ops;       
 
     for (int i = 0; i < expr.length(); i++) {
-        if (isspace(expr[i])) continue; // пропускаємо пробіли
+        if (isspace(expr[i])) continue; 
 
-        if (isdigit(expr[i])) { // якщо цифра, читаємо все число
+        if (isdigit(expr[i])) { 
             double val = 0;
             while (i < expr.length() && isdigit(expr[i])) {
                 val = (val * 10) + (expr[i] - '0');
                 i++;
             }
             values.push(val);
-            i--; // повертаємо індекс на попередній символ
+            i--; 
         }
-        else if (expr[i] == '(') { // якщо дужки, додаємо до стека
+        else if (expr[i] == '(') { 
             ops.push(expr[i]);
         }
-        else if (expr[i] == ')') { // якщо закриваюча дужка, вирішуємо вираз
+        else if (expr[i] == ')') {
             while (!ops.empty() && ops.top() != '(') {
                 char op = ops.top();
                 ops.pop();
@@ -64,7 +60,7 @@ double evaluate(string expr) {
 
                 values.push(applyOp(val1, val2, op));
             }
-            ops.pop(); // видаляємо відкриваючу дужку
+            ops.pop();
         }
         else if (expr[i] == '!') { // факторіал
             int val = values.top();
@@ -87,7 +83,6 @@ double evaluate(string expr) {
         }
     }
 
-    // обчислюємо всі залишки
     while (!ops.empty()) {
         char op = ops.top();
         ops.pop();
@@ -112,4 +107,3 @@ int main() {
 
     return 0;
 }
-
