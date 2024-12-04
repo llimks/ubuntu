@@ -1,8 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include <cctype>
-#include <stack>
-#include <string>
 
 using namespace std;
 
@@ -10,13 +7,6 @@ int factorial(int n) {
     if (n == 0 || n == 1)
         return 1;
     return n * factorial(n - 1);
-}
-
-int precedence(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/') return 2;
-    if (op == '!') return 3;
-    return 0;
 }
 
 double applyOp(double a, double b, char op) {
@@ -29,81 +19,76 @@ double applyOp(double a, double b, char op) {
     }
 }
 
-double evaluate(string expr) {
-    stack<double> values; 
-    stack<char> ops;       
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    if (op == '!') return 3;
+    return 0;
+}
 
-    for (int i = 0; i < expr.length(); i++) {
-        if (isspace(expr[i])) continue; 
+double evaluate(const char* expr) {
+    double values[100];
+    char ops[100];    
+    int valTop = -1;
+    int opsTop = -1;
 
-        if (isdigit(expr[i])) { 
+    for (int i = 0; expr[i] != '\0'; i++) {
+      
+        if (expr[i] == ' ') continue;
+
+        if (isdigit(expr[i])) {
             double val = 0;
-            while (i < expr.length() && isdigit(expr[i])) {
-                val = (val * 10) + (expr[i] - '0');
+            while (expr[i] != '\0' && isdigit(expr[i])) {
+                val = val * 10 + (expr[i] - '0');
                 i++;
             }
-            values.push(val);
+            values[++valTop] = val;
             i--; 
         }
-        else if (expr[i] == '(') { 
-            ops.push(expr[i]);
+         else if (expr[i] == '(') {
+            ops[++opsTop] = expr[i];
         }
         else if (expr[i] == ')') {
-            while (!ops.empty() && ops.top() != '(') {
-                char op = ops.top();
-                ops.pop();
-
-                double val2 = values.top();
-                values.pop();
-                double val1 = values.top();
-                values.pop();
-
-                values.push(applyOp(val1, val2, op));
+            while (opsTop != -1 && ops[opsTop] != '(') {
+                double val2 = values[valTop--];
+                double val1 = values[valTop--];
+                char op = ops[opsTop--];
+                values[++valTop] = applyOp(val1, val2, op);
             }
-            ops.pop();
+            opsTop--;
         }
-        else if (expr[i] == '!') { // факторіал
-            int val = values.top();
-            values.pop();
-            values.push(factorial(val));
-        }
-        else { // оператори +, -, *, /
-            while (!ops.empty() && precedence(ops.top()) >= precedence(expr[i])) {
-                char op = ops.top();
-                ops.pop();
-
-                double val2 = values.top();
-                values.pop();
-                double val1 = values.top();
-                values.pop();
-
-                values.push(applyOp(val1, val2, op));
+        else if (expr[i] == '+' || expr[i] == '-' || expr[i] == '*' || expr[i] == '/') {
+            while (opsTop != -1 && precedence(ops[opsTop]) >= precedence(expr[i])) {
+                double val2 = values[valTop--];
+                double val1 = values[valTop--];
+                char op = ops[opsTop--];
+                values[++valTop] = applyOp(val1, val2, op);
             }
-            ops.push(expr[i]);
+            ops[++opsTop] = expr[i];
+        }
+        else if (expr[i] == '!') {
+            int val = values[valTop--];
+            values[++valTop] = factorial(val);
         }
     }
 
-    while (!ops.empty()) {
-        char op = ops.top();
-        ops.pop();
-
-        double val2 = values.top();
-        values.pop();
-        double val1 = values.top();
-        values.pop();
-
-        values.push(applyOp(val1, val2, op));
+    while (opsTop != -1) {
+        double val2 = values[valTop--];
+        double val1 = values[valTop--];
+        char op = ops[opsTop--];
+        values[++valTop] = applyOp(val1, val2, op);
     }
 
-    return values.top();
+    return values[valTop];
 }
 
 int main() {
-    string expr;
+    char expr[100];
     cout << "Enter a mathematical expression: ";
-    getline(cin, expr);
+    cin.getline(expr, 100);
 
     cout << "Result: " << evaluate(expr) << endl;
 
     return 0;
 }
+              
